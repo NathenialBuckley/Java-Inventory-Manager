@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .form-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            font-size: 20px;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .table-section {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        thead {
+            background: #f5f5f5;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+
+        td {
+            font-size: 14px;
+            color: #333;
+        }
+
+        tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-edit:hover {
+            background: #0b7dda;
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-delete:hover {
+            background: #da190b;
+        }
+
+        .btn-sell {
+            background: #FF9800;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-sell:hover {
+            background: #F57C00;
+        }
+
+        .btn-buy {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-buy:hover {
+            background: #45a049;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 90%;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .modal-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .quantity-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quantity-btn {
+            background: #FF9800;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: #F57C00;
+        }
+
+        .quantity-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .quantity-btn-buy {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .quantity-btn-buy:hover {
+            background: #45a049;
+        }
+
+        .custom-quantity {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .custom-quantity input {
+            flex: 1;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .btn-cancel {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-cancel:hover {
+            background: #555;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .summary-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 8px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .summary-card.spending {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .summary-card.sales {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .summary-card.profit {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .summary-card h3 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .summary-card .amount {
+            font-size: 32px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Inventory Manager</h1>
+
+        <div id="message" class="message"></div>
+
+        <!-- Summary Section -->
+        <div class="summary-section">
+            <div class="summary-card spending">
+                <h3>Total Spending</h3>
+                <div class="amount" id="total-spending">$0.00</div>
+            </div>
+            <div class="summary-card sales">
+                <h3>Total Sales</h3>
+                <div class="amount" id="total-sales">$0.00</div>
+            </div>
+            <div class="summary-card profit">
+                <h3>Net Profit</h3>
+                <div class="amount" id="net-profit">$0.00</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 id="form-title">Add New Item</h2>
+            <form id="item-form">
+                <input type="hidden" id="item-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name">Item Name *</label>
+                        <input type="text" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sku">SKU *</label>
+                        <input type="text" id="sku" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Sell Price ($)</label>
+                        <input type="number" id="price" step="0.01" min="0" value="0.00">
+                    </div>
+                </div>
+                <button type="submit" id="submit-btn">Add Item</button>
+                <button type="button" id="cancel-btn" style="background: #666; display: none; margin-left: 10px;">Cancel</button>
+            </form>
+        </div>
+
+        <div class="table-section">
+            <h2>Inventory Items</h2>
+            <table id="items-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>SKU</th>
+                        <th>Quantity</th>
+                        <th>Sell Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="items-body">
+                    <tr>
+                        <td colspan="6" class="empty-state">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sell Modal -->
+    <div id="sell-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Sell Item</h3>
+                <p id="modal-item-info"></p>
+            </div>
+            <div class="quantity-options">
+                <button class="quantity-btn" onclick="sellQuantity(1)">Sell 1</button>
+                <button class="quantity-btn" onclick="sellQuantity(5)">Sell 5</button>
+                <div class="custom-quantity">
+                    <input type="number" id="custom-quantity" min="1" placeholder="Custom amount">
+                    <button class="quantity-btn" onclick="sellCustom()">Sell</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeSellModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buy Modal -->
+    <div id="buy-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Buy Item</h3>
+                <p id="modal-buy-item-info"></p>
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="buy-cost-per-unit">Cost Per Unit ($)</label>
+                <input type="number" id="buy-cost-per-unit" step="0.01" min="0" placeholder="Enter cost per unit" required>
+            </div>
+            <div class="quantity-options">
+                <button class="quantity-btn-buy" onclick="buyQuantity(1)">Buy 1</button>
+                <button class="quantity-btn-buy" onclick="buyQuantity(5)">Buy 5</button>
+                <div class="custom-quantity">
+                    <input type="number" id="custom-buy-quantity" min="1" placeholder="Custom amount">
+                    <button class="quantity-btn-buy" onclick="buyCustom()">Buy</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeBuyModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/items';
+        let editingId = null;
+        let currentSellItem = null;
+        let currentBuyItem = null;
+
+        // Load items on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadItems();
+            loadSummary();
+        });
+
+        // Load financial summary
+        async function loadSummary() {
+            try {
+                const response = await fetch('/api/transactions/summary');
+                const summary = await response.json();
+
+                document.getElementById('total-spending').textContent = `$${parseFloat(summary.totalSpending).toFixed(2)}`;
+                document.getElementById('total-sales').textContent = `$${parseFloat(summary.totalSales).toFixed(2)}`;
+                document.getElementById('net-profit').textContent = `$${parseFloat(summary.netProfit).toFixed(2)}`;
+            } catch (error) {
+                console.error('Error loading summary:', error);
+            }
+        }
+
+        // Record a transaction
+        async function recordTransaction(itemId, type, quantity, pricePerUnit) {
+            try {
+                await fetch('/api/transactions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        itemId,
+                        type,
+                        quantity,
+                        pricePerUnit
+                    })
+                });
+                await loadSummary();
+            } catch (error) {
+                console.error('Error recording transaction:', error);
+            }
+        }
+
+        // Form submission
+        document.getElementById('item-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const item = {
+                name: document.getElementById('name').value,
+                sku: document.getElementById('sku').value,
+                quantity: parseInt(document.getElementById('quantity').value) || 0,
+                price: parseFloat(document.getElementById('price').value) || 0
+            };
+
+            try {
+                if (editingId) {
+                    await updateItem(editingId, item);
+                } else {
+                    await createItem(item);
+                }
+                resetForm();
+                await loadItems();
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        });
+
+        // Cancel button
+        document.getElementById('cancel-btn').addEventListener('click', resetForm);
+
+        // Create item
+        async function createItem(item) {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create item');
+            }
+
+            showMessage('Item added successfully!', 'success');
+        }
+
+        // Update item
+        async function updateItem(id, item) {
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update item');
+            }
+
+            showMessage('Item updated successfully!', 'success');
+        }
+
+        // Load items
+        async function loadItems() {
+            try {
+                const response = await fetch(API_URL);
+                const items = await response.json();
+
+                const tbody = document.getElementById('items-body');
+
+                if (items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No items found. Add your first item above!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = items.map(item => `
+                    <tr>
+                        <td>${item.id}</td>
+                        <td>${item.name}</td>
+                        <td>${item.sku}</td>
+                        <td>${item.quantity}</td>
+                        <td>$${parseFloat(item.price).toFixed(2)}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn-buy" onclick="openBuyModal(${item.id}, '${item.name.replace(/'/g, "\\'")}', ${item.quantity})">Buy</button>
+                                <button class="btn-sell" onclick="openSellModal(${item.id}, '${item.name.replace(/'/g, "\\'")}', ${item.quantity})">Sell</button>
+                                <button class="btn-edit" onclick="editItem(${item.id})">Edit</button>
+                                <button class="btn-delete" onclick="deleteItem(${item.id})">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                document.getElementById('items-body').innerHTML =
+                    '<tr><td colspan="6" class="empty-state">Error loading items</td></tr>';
+            }
+        }
+
+        // Edit item
+        async function editItem(id) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`);
+                const item = await response.json();
+
+                document.getElementById('item-id').value = item.id;
+                document.getElementById('name').value = item.name;
+                document.getElementById('sku').value = item.sku;
+                document.getElementById('quantity').value = item.quantity;
+                document.getElementById('price').value = item.price;
+
+                document.getElementById('form-title').textContent = 'Edit Item';
+                document.getElementById('submit-btn').textContent = 'Update Item';
+                document.getElementById('cancel-btn').style.display = 'inline-block';
+
+                editingId = id;
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                showMessage('Error loading item for edit', 'error');
+            }
+        }
+
+        // Delete item
+        async function deleteItem(id) {
+            if (!confirm('Are you sure you want to delete this item?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete item');
+                }
+
+                showMessage('Item deleted successfully!', 'success');
+                await loadItems();
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('item-form').reset();
+            document.getElementById('item-id').value = '';
+            document.getElementById('form-title').textContent = 'Add New Item';
+            document.getElementById('submit-btn').textContent = 'Add Item';
+            document.getElementById('cancel-btn').style.display = 'none';
+            editingId = null;
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type} show`;
+
+            setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 3000);
+        }
+
+        // Open sell modal
+        function openSellModal(id, name, quantity) {
+            currentSellItem = { id, name, quantity };
+            document.getElementById('modal-item-info').textContent = `${name} (Current Stock: ${quantity})`;
+            document.getElementById('custom-quantity').value = '';
+            document.getElementById('custom-quantity').max = quantity;
+            document.getElementById('sell-modal').classList.add('show');
+        }
+
+        // Close sell modal
+        function closeSellModal() {
+            document.getElementById('sell-modal').classList.remove('show');
+            currentSellItem = null;
+        }
+
+        // Sell specific quantity
+        async function sellQuantity(amount) {
+            if (!currentSellItem) return;
+
+            if (amount > currentSellItem.quantity) {
+                showMessage(`Cannot sell ${amount} units. Only ${currentSellItem.quantity} in stock.`, 'error');
+                return;
+            }
+
+            await processSale(amount);
+        }
+
+        // Sell custom quantity
+        async function sellCustom() {
+            const amount = parseInt(document.getElementById('custom-quantity').value);
+
+            if (!amount || amount <= 0) {
+                showMessage('Please enter a valid quantity', 'error');
+                return;
+            }
+
+            if (amount > currentSellItem.quantity) {
+                showMessage(`Cannot sell ${amount} units. Only ${currentSellItem.quantity} in stock.`, 'error');
+                return;
+            }
+
+            await processSale(amount);
+        }
+
+        // Process the sale
+        async function processSale(amount) {
+            try {
+                // Fetch current item data
+                const response = await fetch(`${API_URL}/${currentSellItem.id}`);
+                const item = await response.json();
+
+                // Record the transaction
+                await recordTransaction(currentSellItem.id, 'SELL', amount, item.price);
+
+                // Update quantity
+                item.quantity = item.quantity - amount;
+
+                // Update item
+                await updateItem(currentSellItem.id, item);
+
+                showMessage(`Successfully sold ${amount} unit(s) of ${currentSellItem.name}!`, 'success');
+                closeSellModal();
+                await loadItems();
+            } catch (error) {
+                showMessage('Error processing sale: ' + error.message, 'error');
+            }
+        }
+
+        // Open buy modal
+        function openBuyModal(id, name, quantity) {
+            currentBuyItem = { id, name, quantity };
+            document.getElementById('modal-buy-item-info').textContent = `${name} (Current Stock: ${quantity})`;
+            document.getElementById('custom-buy-quantity').value = '';
+            document.getElementById('buy-cost-per-unit').value = '';
+            document.getElementById('buy-modal').classList.add('show');
+        }
+
+        // Close buy modal
+        function closeBuyModal() {
+            document.getElementById('buy-modal').classList.remove('show');
+            currentBuyItem = null;
+        }
+
+        // Buy specific quantity
+        async function buyQuantity(amount) {
+            if (!currentBuyItem) return;
+
+            const costPerUnit = parseFloat(document.getElementById('buy-cost-per-unit').value);
+            if (!costPerUnit || costPerUnit <= 0) {
+                showMessage('Please enter a valid cost per unit', 'error');
+                return;
+            }
+
+            await processPurchase(amount, costPerUnit);
+        }
+
+        // Buy custom quantity
+        async function buyCustom() {
+            const amount = parseInt(document.getElementById('custom-buy-quantity').value);
+            const costPerUnit = parseFloat(document.getElementById('buy-cost-per-unit').value);
+
+            if (!amount || amount <= 0) {
+                showMessage('Please enter a valid quantity', 'error');
+                return;
+            }
+
+            if (!costPerUnit || costPerUnit <= 0) {
+                showMessage('Please enter a valid cost per unit', 'error');
+                return;
+            }
+
+            await processPurchase(amount, costPerUnit);
+        }
+
+        // Process the purchase
+        async function processPurchase(amount, costPerUnit) {
+            try {
+                // Fetch current item data
+                const response = await fetch(`${API_URL}/${currentBuyItem.id}`);
+                const item = await response.json();
+
+                // Record the transaction with the custom cost
+                await recordTransaction(currentBuyItem.id, 'BUY', amount, costPerUnit);
+
+                // Update quantity (add instead of subtract)
+                item.quantity = item.quantity + amount;
+
+                // Update item
+                await updateItem(currentBuyItem.id, item);
+
+                const totalCost = (amount * costPerUnit).toFixed(2);
+                showMessage(`Successfully bought ${amount} unit(s) of ${currentBuyItem.name} for $${totalCost}!`, 'success');
+                closeBuyModal();
+                await loadItems();
+            } catch (error) {
+                showMessage('Error processing purchase: ' + error.message, 'error');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('sell-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'sell-modal') {
+                closeSellModal();
+            }
+        });
+
+        document.getElementById('buy-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'buy-modal') {
+                closeBuyModal();
+            }
+        });
+
+        // Make functions global for onclick handlers
+        window.editItem = editItem;
+        window.deleteItem = deleteItem;
+        window.openSellModal = openSellModal;
+        window.closeSellModal = closeSellModal;
+        window.sellQuantity = sellQuantity;
+        window.sellCustom = sellCustom;
+        window.openBuyModal = openBuyModal;
+        window.closeBuyModal = closeBuyModal;
+        window.buyQuantity = buyQuantity;
+        window.buyCustom = buyCustom;
+    </script>
+</body>
+</html>
