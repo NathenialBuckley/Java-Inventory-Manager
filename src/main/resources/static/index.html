@@ -392,6 +392,20 @@
             font-size: 32px;
             font-weight: 700;
         }
+
+        .field-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .field-hint::before {
+            content: "💡";
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -432,6 +446,7 @@
                     <div class="form-group">
                         <label for="quantity">Quantity</label>
                         <input type="number" id="quantity" min="0" value="0">
+                        <small class="field-hint">It's okay to enter 0 if you don't have any stock yet</small>
                     </div>
                     <div class="form-group">
                         <label for="price">Sell Price ($)</label>
