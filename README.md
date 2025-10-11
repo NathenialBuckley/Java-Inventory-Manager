@@ -1,7 +1,3 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
 A Spring Boot REST API for inventory management built with Java 11. The application provides CRUD operations for inventory items using Spring Data JPA with an H2 in-memory database.
