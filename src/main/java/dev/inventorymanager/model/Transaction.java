@@ -16,6 +16,10 @@ public class Transaction {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = true)
+    private User user;
+
     @Column(nullable = false)
     private String type; // "BUY" or "SELL"
 
@@ -58,6 +62,14 @@ public class Transaction {
 
     public void setItem(Item item) {
         this.item = item;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public String getType() {

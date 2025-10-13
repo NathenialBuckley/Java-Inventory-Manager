@@ -2,9 +2,13 @@ package dev.inventorymanager.controller;
 
 import dev.inventorymanager.model.Item;
 import dev.inventorymanager.model.Transaction;
+import dev.inventorymanager.model.User;
 import dev.inventorymanager.repository.ItemRepository;
 import dev.inventorymanager.repository.TransactionRepository;
+import dev.inventorymanager.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -18,10 +22,12 @@ public class TransactionController {
 
     private final TransactionRepository transactionRepository;
     private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
 
-    public TransactionController(TransactionRepository transactionRepository, ItemRepository itemRepository) {
+    public TransactionController(TransactionRepository transactionRepository, ItemRepository itemRepository, UserRepository userRepository) {
         this.transactionRepository = transactionRepository;
         this.itemRepository = itemRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -58,6 +64,17 @@ public class TransactionController {
                 request.getQuantity(),
                 request.getPricePerUnit()
         );
+
+        // Get the current authenticated user and associate with transaction
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() &&
+            !authentication.getPrincipal().equals("anonymousUser")) {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username).orElse(null);
+            if (user != null) {
+                transaction.setUser(user);
+            }
+        }
 
         Transaction saved = transactionRepository.save(transaction);
         return ResponseEntity.ok(saved);
