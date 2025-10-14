@@ -2,7 +2,6 @@ services:
   # Web Service (Spring Boot App)
   - type: web
     name: inventory-manager
-    env: java
     region: oregon
     plan: free
     buildCommand: mvn clean install -DskipTests
