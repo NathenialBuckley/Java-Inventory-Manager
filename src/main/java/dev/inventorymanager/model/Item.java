@@ -1,5 +1,6 @@
 package dev.inventorymanager.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,7 +21,13 @@ public class Item {
 
     private BigDecimal price;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = true)
+    @JsonIgnore
+    private User user;
+
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Transaction> transactions;
 
     public Item() {}
@@ -70,5 +77,13 @@ public class Item {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

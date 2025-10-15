@@ -30,9 +30,20 @@ public class TransactionController {
         this.userRepository = userRepository;
     }
 
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() ||
+            authentication.getPrincipal().equals("anonymousUser")) {
+            throw new IllegalStateException("User not authenticated");
+        }
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new IllegalStateException("User not found"));
+    }
+
     @GetMapping
     public List<Transaction> list() {
-        return transactionRepository.findAll();
+        return transactionRepository.findByUserOrderByTransactionDateDesc(getCurrentUser());
     }
 
     @GetMapping("/item/{itemId}")
@@ -42,9 +53,10 @@ public class TransactionController {
 
     @GetMapping("/summary")
     public ResponseEntity<Map<String, BigDecimal>> getSummary() {
+        User currentUser = getCurrentUser();
         Map<String, BigDecimal> summary = new HashMap<>();
-        summary.put("totalSpending", transactionRepository.getTotalSpending());
-        summary.put("totalSales", transactionRepository.getTotalSales());
+        summary.put("totalSpending", transactionRepository.getTotalSpending(currentUser));
+        summary.put("totalSales", transactionRepository.getTotalSales(currentUser));
 
         BigDecimal spending = summary.get("totalSpending");
         BigDecimal sales = summary.get("totalSales");
@@ -55,8 +67,11 @@ public class TransactionController {
 
     @PostMapping
     public ResponseEntity<Transaction> create(@RequestBody TransactionRequest request) {
-        Item item = itemRepository.findById(request.getItemId())
-                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+        User currentUser = getCurrentUser();
+
+        // Verify the item belongs to the current user
+        Item item = itemRepository.findByIdAndUser(request.getItemId(), currentUser)
+                .orElseThrow(() -> new IllegalArgumentException("Item not found or access denied"));
 
         Transaction transaction = new Transaction(
                 item,
@@ -65,16 +80,8 @@ public class TransactionController {
                 request.getPricePerUnit()
         );
 
-        // Get the current authenticated user and associate with transaction
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated() &&
-            !authentication.getPrincipal().equals("anonymousUser")) {
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username).orElse(null);
-            if (user != null) {
-                transaction.setUser(user);
-            }
-        }
+        // Associate transaction with the current user
+        transaction.setUser(currentUser);
 
         Transaction saved = transactionRepository.save(transaction);
         return ResponseEntity.ok(saved);
