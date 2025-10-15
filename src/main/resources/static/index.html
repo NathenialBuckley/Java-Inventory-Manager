@@ -717,6 +717,141 @@
         #auth-container {
             display: block;
         }
+
+        /* Mobile responsive styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+
+            .user-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+                padding-bottom: 16px;
+                margin-bottom: 24px;
+            }
+
+            .user-info {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .username-display {
+                font-size: 13px;
+                padding: 6px 12px;
+            }
+
+            .btn-logout {
+                width: 100%;
+                padding: 10px 16px;
+            }
+
+            .summary-section {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+
+            .summary-card {
+                padding: 20px;
+            }
+
+            .summary-card .amount {
+                font-size: 28px;
+            }
+
+            .form-section {
+                padding: 20px;
+                margin-bottom: 24px;
+            }
+
+            .form-section h2 {
+                font-size: 18px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .table-section {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            th, td {
+                padding: 12px 10px;
+                font-size: 13px;
+            }
+
+            .actions {
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .actions button {
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 24px;
+            }
+
+            .modal-header h3 {
+                font-size: 20px;
+            }
+
+            .auth-container {
+                padding: 32px 24px;
+                margin: 40px auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 20px;
+            }
+
+            .container {
+                padding: 16px;
+                border-radius: 12px;
+            }
+
+            .form-section {
+                padding: 16px;
+            }
+
+            .summary-card .amount {
+                font-size: 24px;
+            }
+
+            th, td {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
