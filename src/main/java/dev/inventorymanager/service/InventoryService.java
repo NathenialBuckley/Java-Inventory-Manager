@@ -1,6 +1,7 @@
 package dev.inventorymanager.service;
 
 import dev.inventorymanager.model.Item;
+import dev.inventorymanager.model.User;
 import dev.inventorymanager.repository.ItemRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +17,7 @@ public class InventoryService {
         this.repository = repository;
     }
 
-    public Item create(Item item) {
+    public Item create(Item item, User user) {
         // basic validation
         if (item.getName() == null || item.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("name is required");
@@ -24,19 +25,20 @@ public class InventoryService {
         if (item.getSku() == null || item.getSku().trim().isEmpty()) {
             throw new IllegalArgumentException("sku is required");
         }
+        item.setUser(user);
         return repository.save(item);
     }
 
-    public List<Item> list() {
-        return repository.findAll();
+    public List<Item> list(User user) {
+        return repository.findByUser(user);
     }
 
-    public Optional<Item> get(Long id) {
-        return repository.findById(id);
+    public Optional<Item> get(Long id, User user) {
+        return repository.findByIdAndUser(id, user);
     }
 
-    public Item update(Long id, Item updated) {
-        return repository.findById(id).map(existing -> {
+    public Item update(Long id, Item updated, User user) {
+        return repository.findByIdAndUser(id, user).map(existing -> {
             existing.setName(updated.getName());
             existing.setSku(updated.getSku());
             existing.setQuantity(updated.getQuantity());
@@ -45,7 +47,7 @@ public class InventoryService {
         }).orElseThrow(() -> new IllegalArgumentException("item not found"));
     }
 
-    public void delete(Long id) {
-        repository.deleteById(id);
+    public void delete(Long id, User user) {
+        repository.findByIdAndUser(id, user).ifPresent(repository::delete);
     }
 }

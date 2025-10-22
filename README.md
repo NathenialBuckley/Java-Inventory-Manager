@@ -21,13 +21,6 @@ mvn test
 mvn test -Dtest=InventoryApiIntegrationTest
 mvn test -Dtest=InventoryApiIntegrationTest#basicCreateAndGet
 ```
-
-### Application Access
-- API base URL: http://localhost:8080/api/items
-- H2 Console: http://localhost:8080/h2-console (enabled in application.properties)
-  - JDBC URL: jdbc:h2:mem:inventorydb
-  - Driver: org.h2.Driver
-
 ## Architecture
 
 The application follows a standard 3-layer Spring Boot architecture:
