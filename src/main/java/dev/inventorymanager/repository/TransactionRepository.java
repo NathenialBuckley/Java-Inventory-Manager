@@ -20,4 +20,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     @Query("SELECT COALESCE(SUM(t.totalAmount), 0) FROM Transaction t WHERE t.type = 'SELL' AND t.user = :user")
     BigDecimal getTotalSales(@Param("user") User user);
+
+    // Dashboard queries
+    Long countByUser(User user);
 }
