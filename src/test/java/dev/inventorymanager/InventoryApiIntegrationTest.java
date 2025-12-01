@@ -64,8 +64,9 @@ public class InventoryApiIntegrationTest {
 
         ResponseEntity<Item> fetched = authenticatedRestTemplate1.getForEntity(base + "/" + body.getId(), Item.class);
         assertThat(fetched.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(fetched.getBody()).isNotNull();
-        assertThat(fetched.getBody().getName()).isEqualTo("Test Item");
+        Item fetchedBody = fetched.getBody();
+        assertThat(fetchedBody).isNotNull();
+        assertThat(fetchedBody.getName()).isEqualTo("Test Item");
     }
 
     @Test

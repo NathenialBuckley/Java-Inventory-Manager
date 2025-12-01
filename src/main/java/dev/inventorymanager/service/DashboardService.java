@@ -6,8 +6,6 @@ import dev.inventorymanager.model.Transaction;
 import dev.inventorymanager.model.User;
 import dev.inventorymanager.repository.ItemRepository;
 import dev.inventorymanager.repository.TransactionRepository;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

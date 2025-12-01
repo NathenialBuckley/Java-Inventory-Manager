@@ -91,7 +91,7 @@ public class AuthController {
                                       authentication.isAuthenticated() &&
                                       !authentication.getPrincipal().equals("anonymousUser"));
 
-        if (response.get("authenticated").equals(true)) {
+        if (response.get("authenticated").equals(true) && authentication != null) {
             response.put("username", authentication.getName());
         }
 
