@@ -1,11 +1,10 @@
 package dev.inventorymanager.controller;
 
-import dev.inventorymanager.model.Item;
-import dev.inventorymanager.model.Transaction;
-import dev.inventorymanager.model.User;
+import dev.inventorymanager.model.*;
 import dev.inventorymanager.repository.ItemRepository;
 import dev.inventorymanager.repository.TransactionRepository;
 import dev.inventorymanager.repository.UserRepository;
+import dev.inventorymanager.service.TransactionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,11 +22,16 @@ public class TransactionController {
     private final TransactionRepository transactionRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final TransactionService transactionService;
 
-    public TransactionController(TransactionRepository transactionRepository, ItemRepository itemRepository, UserRepository userRepository) {
+    public TransactionController(TransactionRepository transactionRepository,
+                                ItemRepository itemRepository,
+                                UserRepository userRepository,
+                                TransactionService transactionService) {
         this.transactionRepository = transactionRepository;
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
+        this.transactionService = transactionService;
     }
 
     private User getCurrentUser() {
@@ -73,18 +77,25 @@ public class TransactionController {
         Item item = itemRepository.findByIdAndUser(request.getItemId(), currentUser)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found or access denied"));
 
-        Transaction transaction = new Transaction(
+        // Parse transaction type from string to enum
+        TransactionType type;
+        try {
+            type = TransactionType.valueOf(request.getType().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid transaction type. Must be BUY or SELL");
+        }
+
+        // Use TransactionService to process the transaction atomically
+        Transaction transaction = transactionService.processTransaction(
                 item,
-                request.getType(),
+                type,
                 request.getQuantity(),
-                request.getPricePerUnit()
+                request.getPricePerUnit(),
+                currentUser,
+                request.getNotes()
         );
 
-        // Associate transaction with the current user
-        transaction.setUser(currentUser);
-
-        Transaction saved = transactionRepository.save(transaction);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(transaction);
     }
 
     // DTO for transaction creation
@@ -93,6 +104,7 @@ public class TransactionController {
         private String type;
         private Integer quantity;
         private BigDecimal pricePerUnit;
+        private String notes;
 
         public Long getItemId() {
             return itemId;
@@ -124,6 +136,14 @@ public class TransactionController {
 
         public void setPricePerUnit(BigDecimal pricePerUnit) {
             this.pricePerUnit = pricePerUnit;
+        }
+
+        public String getNotes() {
+            return notes;
+        }
+
+        public void setNotes(String notes) {
+            this.notes = notes;
         }
     }
 }
