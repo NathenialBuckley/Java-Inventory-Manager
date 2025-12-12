@@ -2,10 +2,10 @@ package dev.inventorymanager.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
 import java.net.URI;
@@ -16,8 +16,19 @@ public class DatabaseConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
 
+    @Value("${spring.datasource.url:}")
+    private String datasourceUrl;
+
+    @Value("${spring.datasource.username:}")
+    private String datasourceUsername;
+
+    @Value("${spring.datasource.password:}")
+    private String datasourcePassword;
+
+    @Value("${spring.datasource.driver-class-name:org.postgresql.Driver}")
+    private String driverClassName;
+
     @Bean
-    @Primary
     public DataSource dataSource() {
         String databaseUrl = System.getenv("DATABASE_URL");
 
@@ -57,9 +68,14 @@ public class DatabaseConfig {
         }
 
         logger.info("DATABASE_URL not found, using application.properties configuration");
+        logger.info("Using datasource URL from properties: {}", datasourceUrl);
         // Fallback to application.properties configuration (for Railway, local dev, etc.)
         return DataSourceBuilder
                 .create()
+                .url(datasourceUrl)
+                .username(datasourceUsername)
+                .password(datasourcePassword)
+                .driverClassName(driverClassName)
                 .build();
     }
 }
