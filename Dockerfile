@@ -1,9 +1,6 @@
 # Build stage
-<<<<<<< HEAD
-FROM maven:3.8-openjdk-11-slim AS build
-=======
+FROM maven:3
 FROM maven:3.9-openjdk-21-slim AS build
->>>>>>> 1f595176e181877978aff79da019fefa7885e048
 
 WORKDIR /app
 
