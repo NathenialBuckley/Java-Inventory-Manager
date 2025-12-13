@@ -718,6 +718,74 @@
             display: block;
         }
 
+        /* Main navigation tabs */
+        .main-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            background: var(--bg-tertiary);
+            padding: 6px;
+            border-radius: 12px;
+        }
+
+        .main-tab {
+            flex: 1;
+            padding: 14px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .main-tab.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Transaction specific styles */
+        .transaction-type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .transaction-type-badge.buy {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+
+        .transaction-type-badge.sell {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning-color);
+            border: 1px solid var(--warning-color);
+        }
+
+        .inventory-change {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+        }
+
         /* Mobile responsive styles */
         @media (max-width: 768px) {
             body {
@@ -909,6 +977,14 @@
 
         <div id="message" class="message"></div>
 
+        <!-- Main Navigation Tabs -->
+        <div class="main-tabs">
+            <button class="main-tab active" onclick="switchMainTab('inventory')">Inventory</button>
+            <button class="main-tab" onclick="switchMainTab('transactions')">Transactions</button>
+        </div>
+
+        <!-- Inventory Tab Content -->
+        <div id="inventory-tab" class="tab-content active">
         <!-- Summary Section -->
         <div class="summary-section">
             <div class="summary-card spending">
@@ -973,6 +1049,38 @@
                 </tbody>
             </table>
         </div>
+        </div>
+        <!-- End Inventory Tab -->
+
+        <!-- Transactions Tab Content -->
+        <div id="transactions-tab" class="tab-content">
+            <div class="table-section">
+                <h2>Transaction History</h2>
+                <table id="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Item</th>
+                            <th>Type</th>
+                            <th>Quantity</th>
+                            <th>Price/Unit</th>
+                            <th>Total Amount</th>
+                            <th>Inventory Change</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-body">
+                        <tr>
+                            <td colspan="10" class="empty-state">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- End Transactions Tab -->
+
     </div>
 
     <!-- Sell Modal -->
@@ -1069,6 +1177,21 @@
             document.getElementById('current-username').textContent = currentUser.username;
             loadItems();
             loadSummary();
+        }
+
+        // Switch between main tabs (Inventory / Transactions)
+        function switchMainTab(tab) {
+            document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (tab === 'inventory') {
+                document.querySelectorAll('.main-tab')[0].classList.add('active');
+                document.getElementById('inventory-tab').classList.add('active');
+            } else if (tab === 'transactions') {
+                document.querySelectorAll('.main-tab')[1].classList.add('active');
+                document.getElementById('transactions-tab').classList.add('active');
+                loadTransactions();
+            }
         }
 
         function showAuth() {
@@ -1184,6 +1307,55 @@
                 document.getElementById('net-profit').textContent = `$${parseFloat(summary.netProfit).toFixed(2)}`;
             } catch (error) {
                 console.error('Error loading summary:', error);
+            }
+        }
+
+        // Load all transactions
+        async function loadTransactions() {
+            try {
+                const response = await fetch('/api/transactions', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const transactions = await response.json();
+                console.log('Loaded transactions:', transactions);
+
+                const tbody = document.getElementById('transactions-body');
+
+                if (!transactions || transactions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No transactions found. Buy or sell items to create transaction history!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = transactions.map(tx => {
+                    const date = new Date(tx.transactionDate).toLocaleString();
+                    const typeBadge = `<span class="transaction-type-badge ${tx.type.toLowerCase()}">${tx.type}</span>`;
+                    const inventoryChange = `${tx.inventoryBefore} → ${tx.inventoryAfter}`;
+                    const notes = tx.notes || '-';
+
+                    return `
+                        <tr>
+                            <td>${tx.id}</td>
+                            <td>${date}</td>
+                            <td>${tx.item.name}</td>
+                            <td>${typeBadge}</td>
+                            <td>${tx.quantity}</td>
+                            <td>$${parseFloat(tx.pricePerUnit).toFixed(2)}</td>
+                            <td>$${parseFloat(tx.totalAmount).toFixed(2)}</td>
+                            <td><span class="inventory-change">${inventoryChange}</span></td>
+                            <td>${tx.status}</td>
+                            <td>${notes}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('transactions-body').innerHTML =
+                    '<tr><td colspan="10" class="empty-state">Error loading transactions. Check console for details.</td></tr>';
             }
         }
 
@@ -1413,18 +1585,12 @@
         // Process the sale
         async function processSale(amount) {
             try {
-                // Fetch current item data
+                // Fetch current item data to get the sell price
                 const response = await fetch(`${API_URL}/${currentSellItem.id}`);
                 const item = await response.json();
 
-                // Record the transaction
+                // Record the transaction - this automatically updates inventory
                 await recordTransaction(currentSellItem.id, 'SELL', amount, item.price);
-
-                // Update quantity
-                item.quantity = item.quantity - amount;
-
-                // Update item
-                await updateItem(currentSellItem.id, item);
 
                 showMessage(`Successfully sold ${amount} unit(s) of ${currentSellItem.name}!`, 'success');
                 closeSellModal();
@@ -1483,18 +1649,8 @@
         // Process the purchase
         async function processPurchase(amount, costPerUnit) {
             try {
-                // Fetch current item data
-                const response = await fetch(`${API_URL}/${currentBuyItem.id}`);
-                const item = await response.json();
-
-                // Record the transaction with the custom cost
+                // Record the transaction with the custom cost - this automatically updates inventory
                 await recordTransaction(currentBuyItem.id, 'BUY', amount, costPerUnit);
-
-                // Update quantity (add instead of subtract)
-                item.quantity = item.quantity + amount;
-
-                // Update item
-                await updateItem(currentBuyItem.id, item);
 
                 const totalCost = (amount * costPerUnit).toFixed(2);
                 showMessage(`Successfully bought ${amount} unit(s) of ${currentBuyItem.name} for $${totalCost}!`, 'success');
@@ -1529,6 +1685,7 @@
         window.closeBuyModal = closeBuyModal;
         window.buyQuantity = buyQuantity;
         window.buyCustom = buyCustom;
+        window.switchMainTab = switchMainTab;
     </script>
 </body>
 </html>
