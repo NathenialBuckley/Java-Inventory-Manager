@@ -1362,9 +1362,12 @@
         // Record a transaction
         async function recordTransaction(itemId, type, quantity, pricePerUnit) {
             try {
-                await fetch('/api/transactions', {
+                console.log('Recording transaction:', { itemId, type, quantity, pricePerUnit });
+
+                const response = await fetch('/api/transactions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({
                         itemId,
                         type,
@@ -1372,9 +1375,20 @@
                         pricePerUnit
                     })
                 });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Transaction failed:', response.status, errorText);
+                    throw new Error(`Transaction failed: ${response.status} - ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('Transaction successful:', result);
                 await loadSummary();
+                return result;
             } catch (error) {
                 console.error('Error recording transaction:', error);
+                throw error;
             }
         }
 
@@ -1585,9 +1599,12 @@
         // Process the sale
         async function processSale(amount) {
             try {
+                console.log('Starting processSale for', currentSellItem.name, 'quantity:', amount);
+
                 // Fetch current item data to get the sell price
                 const response = await fetch(`${API_URL}/${currentSellItem.id}`);
                 const item = await response.json();
+                console.log('Item data:', item);
 
                 // Record the transaction - this automatically updates inventory
                 await recordTransaction(currentSellItem.id, 'SELL', amount, item.price);
@@ -1596,6 +1613,7 @@
                 closeSellModal();
                 await loadItems();
             } catch (error) {
+                console.error('Error in processSale:', error);
                 showMessage('Error processing sale: ' + error.message, 'error');
             }
         }
@@ -1649,6 +1667,8 @@
         // Process the purchase
         async function processPurchase(amount, costPerUnit) {
             try {
+                console.log('Starting processPurchase for', currentBuyItem.name, 'quantity:', amount, 'cost:', costPerUnit);
+
                 // Record the transaction with the custom cost - this automatically updates inventory
                 await recordTransaction(currentBuyItem.id, 'BUY', amount, costPerUnit);
 
@@ -1657,6 +1677,7 @@
                 closeBuyModal();
                 await loadItems();
             } catch (error) {
+                console.error('Error in processPurchase:', error);
                 showMessage('Error processing purchase: ' + error.message, 'error');
             }
         }

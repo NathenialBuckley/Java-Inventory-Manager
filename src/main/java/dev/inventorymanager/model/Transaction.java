@@ -73,9 +73,11 @@ public class Transaction {
      * Current status of the transaction.
      * Defaults to COMPLETED for backward compatibility.
      * Possible values: PENDING, COMPLETED, FAILED, REVERSED
+     *
+     * NOTE: Made nullable to allow migration of existing data
      */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = true)
     private TransactionStatus status = TransactionStatus.COMPLETED;
 
     /**

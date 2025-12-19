@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
 import java.net.URI;
@@ -30,8 +31,12 @@ import java.net.URISyntaxException;
  * - Converted to JDBC: jdbc:postgresql://host:5432/database?sslmode=require
  *
  * This eliminates the need for manual database configuration when deploying.
+ *
+ * NOTE: This configuration only activates for the 'prod' profile.
+ * The 'dev' profile uses H2 database configured in application-dev.properties.
  */
 @Configuration
+@Profile("prod")
 public class DatabaseConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
