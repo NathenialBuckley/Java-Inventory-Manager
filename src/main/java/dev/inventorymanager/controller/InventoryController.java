@@ -47,12 +47,18 @@ public class InventoryController {
 
     @PostMapping
     public ResponseEntity<Item> create(@RequestBody Item item) {
-        Item created = service.create(item, getCurrentUser());
-        URI location = URI.create("/api/items/" + created.getId());
-        if (location == null) {
-            throw new IllegalStateException("Failed to create URI");
+        try {
+            Item created = service.create(item, getCurrentUser());
+            URI location = URI.create("/api/items/" + created.getId());
+            if (location == null) {
+                throw new IllegalStateException("Failed to create URI");
+            }
+            return ResponseEntity.created(location).body(created);
+        } catch (Exception e) {
+            // Log the full error for debugging
+            e.printStackTrace();
+            throw e;
         }
-        return ResponseEntity.created(location).body(created);
     }
 
     @PutMapping("/{id}")
