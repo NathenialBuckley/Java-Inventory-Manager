@@ -63,9 +63,10 @@ public class Item {
      * The user who owns this item.
      * Many items can belong to one user (Many-to-One relationship).
      * JsonIgnore prevents circular references during JSON serialization.
+     * Every item must have an owner (nullable = false).
      */
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = true)
+    @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
 
